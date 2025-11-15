@@ -59,7 +59,7 @@ func main() {
 	println("Sensor initialized successfully")
 
 	// Enable rotation vector reports at 50Hz (20000 microseconds)
-	err = sensor.EnableReport(bno08x.SensorRotationVector, 20000)
+	err = sensor.EnableReport(bno08x.SensorGameRotationVector, 20000)
 	if err != nil {
 		println("Failed to enable rotation vector:", err.Error())
 		return
@@ -71,7 +71,7 @@ func main() {
 	// Main loop - read quaternions, convert to Euler angles, and send MIDI CC
 	for {
 		event, ok := sensor.GetSensorEvent()
-		if ok && event.ID() == bno08x.SensorRotationVector {
+		if ok && event.ID() == bno08x.SensorGameRotationVector {
 			q := event.Quaternion()
 
 			// Convert quaternion to Euler angles (radians)
@@ -129,23 +129,24 @@ func quaternionToEuler(q bno08x.Quaternion) (roll, pitch, yaw float32) {
 	return roll, pitch, yaw
 }
 
-// angleToMIDI converts an angle in radians (-π to +π) to a MIDI CC value (0-127)
+// angleToMIDI converts an angle in radians to a MIDI CC value (0-127)
+// Maps -90° to +90° to the full 0-127 range, clamping values outside this range
 func angleToMIDI(angle float32) uint8 {
 	// Convert radians to degrees
 	degrees := angle * 180.0 / math.Pi
 
-	// Map -180° to +180° to 0-127
-	// Add 180 to shift range to 0-360, then scale to 0-127
-	normalized := (degrees + 180.0) / 360.0
-	value := normalized * 127.0
+	// Clamp to -90° to +90° range
+	if degrees < -90.0 {
+		degrees = -90.0
+	}
+	if degrees > 90.0 {
+		degrees = 90.0
+	}
 
-	// Clamp to valid MIDI range
-	if value < 0 {
-		return 0
-	}
-	if value > 127 {
-		return 127
-	}
+	// Map -90° to +90° to 0-127
+	// Add 90 to shift range to 0-180, then scale to 0-127
+	normalized := (degrees + 90.0) / 180.0
+	value := normalized * 127.0
 
 	return uint8(value)
 }
