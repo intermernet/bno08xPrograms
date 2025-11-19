@@ -181,12 +181,12 @@ func main() {
 				println(" 0x"+formatHex(id)+" ("+name+"):", c)
 			}
 			println("--- End Summary ---")
+			runtime.ReadMemStats(m)
+			println("Alloc =", m.Alloc, "TotalAlloc =", m.TotalAlloc, "Sys =", m.Sys)
 			lastPrint = time.Now()
 		}
 
 		time.Sleep(5 * time.Millisecond)
-		runtime.ReadMemStats(m)
-		println("Alloc =", m.Alloc, "TotalAlloc =", m.TotalAlloc, "Sys =", m.Sys)
 	}
 }
 

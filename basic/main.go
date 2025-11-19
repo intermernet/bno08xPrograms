@@ -33,11 +33,10 @@ func main() {
 
 	println("Sensor initialized successfully")
 
-	// Enable Game Rotation Vector reports at 100Hz (10000 microseconds = 10ms interval)
-	// Using Game Rotation Vector (0x08) to match the working channel_debug test
-	err = sensor.EnableReport(bno08x.SensorGameRotationVector, 10000)
+	// Enable Sensor Rotation Vector reports at 100Hz (10000 microseconds = 10ms interval)
+	err = sensor.EnableReport(bno08x.SensorRotationVector, 10000)
 	if err != nil {
-		println("Failed to enable game rotation vector:", err.Error())
+		println("Failed to enable sensor rotation vector:", err.Error())
 		return
 	}
 
@@ -50,7 +49,7 @@ func main() {
 	// Main loop - read and display quaternion data
 	for {
 		event, ok := sensor.GetSensorEvent()
-		if ok && (event.ID() == bno08x.SensorRotationVector || event.ID() == bno08x.SensorGameRotationVector) {
+		if ok && event.ID() == bno08x.SensorRotationVector {
 			q := event.Quaternion()
 			println(q.Real, q.I, q.J, q.K, event.QuaternionAccuracy())
 		}

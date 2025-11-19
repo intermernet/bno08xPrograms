@@ -11,6 +11,14 @@ import (
 
 func main() {
 	time.Sleep(2 * time.Second) // Wait for sensor to power up
+
+	// Configure watchdog to reset if main loop stalls
+	wdc := machine.WatchdogConfig{
+		TimeoutMillis: 1000,
+	}
+	machine.Watchdog.Configure(wdc)
+	machine.Watchdog.Start()
+
 	// Initialize I2C bus
 	i2c := machine.I2C0
 	err := i2c.Configure(machine.I2CConfig{
@@ -41,6 +49,8 @@ func main() {
 
 	// Main loop - read and display quaternion data
 	for {
+		// Reset watchdog timer
+		machine.Watchdog.Update()
 		event, ok := sensor.GetSensorEvent()
 		if ok && event.ID() == bno08x.SensorGameRotationVector {
 			q := event.Quaternion()
